@@ -1,0 +1,12 @@
+# ParseHub API Configuration
+PARSEHUB_API_KEY=
+PARSEHUB_BASE_URL=https://www.parsehub.com/api/v2
+
+# Frontend Configuration
+NEXT_PUBLIC_API_URL=http://localhost:3000
+
+# Database Configuration
+DATABASE_PATH=parsehub.db
+
+# Server Port
+PORT=3000
