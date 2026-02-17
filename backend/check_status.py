@@ -58,7 +58,7 @@ def main():
             print(f"  Pages: {pages}")
             
             if current_status == "complete":
-                print(f"  ✅ COMPLETE - Fetching data...")
+                print(f"  [OK] COMPLETE - Fetching data...")
                 data = fetch_data(token, run_token)
                 
                 if "error" not in data:
@@ -77,9 +77,9 @@ def main():
                         "records": data_count
                     })
                 else:
-                    print(f"  ❌ Error fetching data\n")
+                    print(f"  [ERROR] Error fetching data\n")
             elif current_status == "error":
-                print(f"  ❌ RUN ERROR\n")
+                print(f"  [ERROR] RUN ERROR\n")
                 results["runs_status"].append({
                     "project": project,
                     "status": "error"
@@ -92,7 +92,7 @@ def main():
                     "pages": pages
                 })
         else:
-            print(f"  ❌ Error: {status['error']}\n")
+            print(f"  [ERROR] Error: {status['error']}\n")
     
     # Save results
     with open("run_status.json", "w") as f:

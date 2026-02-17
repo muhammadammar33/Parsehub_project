@@ -1,15 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Activity, TrendingUp, Zap, Download, AlertCircle } from 'lucide-react'
+import { Activity, TrendingUp, Zap, Download, AlertCircle, BarChart3 } from 'lucide-react'
 import ProjectsList from '@/components/ProjectsList'
 import StatsCard from '@/components/StatsCard'
 import Header from '@/components/Header'
+import AllProjectsAnalyticsModal from '@/components/AllProjectsAnalyticsModal'
+import RunDialog from '@/components/RunDialog'
+import { useRealTimeMonitoring } from '@/lib/useRealTimeMonitoring'
 
 interface Project {
   token: string
   title: string
   owner_email: string
+  projecturl?: string
+  main_site?: string
   last_run: {
     status: string
     pages: number
@@ -36,6 +41,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [analyticsOpen, setAnalyticsOpen] = useState(false)
+  const [runDialogOpen, setRunDialogOpen] = useState(false)
+  const [projectToRun, setProjectToRun] = useState<Project | null>(null)
+  
+  // Real-time monitoring hook
+  const monitoring = useRealTimeMonitoring()
 
   useEffect(() => {
     fetchProjects()
@@ -146,6 +157,13 @@ export default function Home() {
             🚀 Run All Projects
           </button>
           <button
+            onClick={() => setAnalyticsOpen(true)}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-lg font-semibold transition-all shadow-lg flex items-center gap-2"
+          >
+            <BarChart3 className="w-5 h-5" />
+            📊 Analyze
+          </button>
+          <button
             onClick={fetchProjects}
             disabled={loading}
             className="px-6 py-3 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 rounded-lg font-semibold transition-all"
@@ -168,9 +186,50 @@ export default function Home() {
             <p className="text-slate-400 mt-4">Loading projects...</p>
           </div>
         ) : (
-          <ProjectsList projects={projects} onRefresh={fetchProjects} />
+          <ProjectsList 
+            projects={projects} 
+            onRunProject={async (token: string) => {
+              const project = projects.find(p => p.token === token)
+              if (project) {
+                setProjectToRun(project)
+                setRunDialogOpen(true)
+              }
+            }}
+          />
         )}
       </section>
+
+      {/* Run Dialog */}
+      {projectToRun && (
+        <RunDialog
+          isOpen={runDialogOpen}
+          onClose={() => setRunDialogOpen(false)}
+          projectToken={projectToRun.token}
+          projectTitle={projectToRun.title}
+          projectURL={projectToRun.projecturl || projectToRun.main_site || ''}
+          onRunStart={async (runToken: string, pages: number) => {
+            // Start real-time monitoring
+            try {
+              await monitoring.startMonitoring(projectToRun.token, runToken, pages)
+            } catch (err) {
+              console.error('Failed to start monitoring:', err)
+            }
+            
+            await fetchProjects()
+            // Show analytics modal for all projects
+            setAnalyticsOpen(true)
+          }}
+        />
+      )}
+
+      {/* Analytics Modal */}
+      <AllProjectsAnalyticsModal
+        isOpen={analyticsOpen}
+        onClose={() => {
+          setAnalyticsOpen(false)
+        }}
+        projects={projects}
+      />
     </main>
   )
 }

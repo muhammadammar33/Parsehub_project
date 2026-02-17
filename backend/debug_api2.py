@@ -32,7 +32,7 @@ print(f"   Status: {r.status_code}")
 if r.status_code != 200:
     print(f"   Error: {r.text[:150]}\n")
 else:
-    print(f"   ✅ Success! Data available\n")
+    print(f"   [OK] Success! Data available\n")
 
 # Try endpoint 2: /runs/{run_token} (without /data)
 print("2️⃣  Trying: /projects/{token}/runs/{run_token}")
@@ -42,7 +42,7 @@ r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
     data = r.json()
-    print(f"   ✅ Success! Response keys: {list(data.keys())}")
+    print(f"   [OK] Success! Response keys: {list(data.keys())}")
     print(f"   Has 'data' key: {'data' in data}")
     print(f"   Full response:\n{json.dumps(data, indent=2)[:500]}\n")
 else:
@@ -67,7 +67,7 @@ params = {"api_key": API_KEY}
 r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
-    print(f"   ✅ Success!\n")
+    print(f"   [OK] Success!\n")
 else:
     print(f"   Error: {r.text[:150]}\n")
 
@@ -79,7 +79,7 @@ r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
     data = r.json()
-    print(f"   ✅ Success! Response type: {type(data)}")
+    print(f"   [OK] Success! Response type: {type(data)}")
     if isinstance(data, dict):
         print(f"   Keys: {list(data.keys())}")
         if "data" in data:

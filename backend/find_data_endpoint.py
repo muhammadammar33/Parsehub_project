@@ -37,7 +37,7 @@ params = {"api_key": API_KEY}
 r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
-    print(f"   ✅ Got CSV! First 200 chars:\n{r.text[:200]}\n")
+    print(f"   [OK] Got CSV! First 200 chars:\n{r.text[:200]}\n")
 else:
     print(f"   Error: {r.text[:100]}\n")
 
@@ -48,7 +48,7 @@ params = {"api_key": API_KEY}
 r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
-    print(f"   ✅ Got XLSX binary data\n")
+    print(f"   [OK] Got XLSX binary data\n")
 else:
     print(f"   Error: {r.text[:100]}\n")
 
@@ -60,7 +60,7 @@ r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
     data = r.json()
-    print(f"   ✅ Got response! Type: {type(data)}")
+    print(f"   [OK] Got response! Type: {type(data)}")
     if isinstance(data, dict):
         print(f"   Keys: {list(data.keys())[:10]}\n")
     else:
@@ -73,7 +73,7 @@ params = {"api_key": API_KEY}
 r = requests.get(url, params=params)
 print(f"   Status: {r.status_code}")
 if r.status_code == 200:
-    print(f"   ✅ Got response!\n")
+    print(f"   [OK] Got response!\n")
 else:
     print(f"   Not found\n")
 

@@ -7,19 +7,26 @@ Can be called as a CLI tool or imported as a module
 import json
 import sys
 from database import ParseHubDatabase
+from analytics_service import AnalyticsService
 
 def get_analytics_json(token: str = None) -> str:
     """Get analytics as JSON"""
-    db = ParseHubDatabase()
-    
-    if token:
-        analytics = db.get_project_analytics(token)
-        result = analytics if analytics else {"error": "Project not found"}
-    else:
-        analytics_list = db.get_all_analytics()
-        result = {"projects": analytics_list}
-    
-    return json.dumps(result, indent=2)
+    try:
+        if token:
+            # Use the comprehensive analytics service
+            service = AnalyticsService()
+            analytics = service.get_project_analytics(token)
+            result = analytics if analytics else {"error": "Project not found"}
+        else:
+            # Fallback to basic analytics for all projects
+            db = ParseHubDatabase()
+            analytics_list = db.get_all_analytics()
+            result = {"projects": analytics_list}
+        
+        return json.dumps(result, indent=2, default=str)
+    except Exception as e:
+        print(f"Error: {str(e)}", file=sys.stderr)
+        return json.dumps({"error": str(e)}, indent=2)
 
 def print_dashboard():
     """Print analytics dashboard"""

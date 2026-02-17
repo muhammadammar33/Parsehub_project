@@ -50,7 +50,7 @@ function saveRunToken(token: string, runToken: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { token } = await request.json()
+    const { token, pages } = await request.json()
 
     if (!token) {
       return NextResponse.json(
@@ -67,12 +67,40 @@ export async function POST(request: NextRequest) {
 
     if (response.data && response.data.run_token) {
       saveRunToken(token, response.data.run_token)
+      
+      // Save pages info to active_runs.json if pages specified
+      if (pages && pages > 0) {
+        try {
+          const filePath = path.join(process.cwd(), '..', 'active_runs.json')
+          let data: any = { timestamp: new Date().toISOString(), runs: [] }
+          
+          if (fs.existsSync(filePath)) {
+            const content = fs.readFileSync(filePath, 'utf-8')
+            data = JSON.parse(content)
+          }
+          
+          if (!Array.isArray(data.runs)) {
+            data.runs = []
+          }
+          
+          const runIndex = data.runs.findIndex((r: any) => r.token === token && r.run_token === response.data.run_token)
+          if (runIndex >= 0) {
+            data.runs[runIndex].target_pages = pages
+          }
+          
+          data.timestamp = new Date().toISOString()
+          fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8')
+        } catch (err) {
+          console.log('Warning: Could not save pages info:', err)
+        }
+      }
     }
 
     return NextResponse.json({
       success: true,
       run_token: response.data.run_token,
       status: 'started',
+      pages: pages || 1,
     })
   } catch (error) {
     console.error('API Error:', error)

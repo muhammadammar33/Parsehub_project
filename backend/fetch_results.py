@@ -57,14 +57,14 @@ def main():
         project_info = get_project_data(token)
         
         if "error" in project_info:
-            print(f"  ❌ Error: {project_info['error']}\n")
+            print(f"  [ERROR] Error: {project_info['error']}\n")
             continue
         
         # Get the last run info
         last_run = project_info.get("last_run")
         
         if not last_run:
-            print(f"  ⚠️  No run data available\n")
+            print(f"  [WARNING]  No run data available\n")
             continue
         
         last_run_token = last_run.get("run_token")
@@ -74,13 +74,13 @@ def main():
         print(f"  Last Run Token: {last_run_token}")
         
         if status == "complete":
-            print(f"  ✅ COMPLETE - Fetching data...")
+            print(f"  [OK] COMPLETE - Fetching data...")
             
             # Fetch the data
             data = fetch_run_data(token, last_run_token)
             
             if "error" in data:
-                print(f"  ❌ Error fetching: {data['error']}\n")
+                print(f"  [ERROR] Error fetching: {data['error']}\n")
                 continue
             
             # Save data

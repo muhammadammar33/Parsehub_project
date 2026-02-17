@@ -61,7 +61,7 @@ def monitor_projects(check_interval=30, max_wait=3600):
         elapsed = time.time() - start_time
         
         if elapsed > max_wait:
-            print(f"\n⏱️  Max wait time reached ({max_wait}s)")
+            print(f"\n[TIME]  Max wait time reached ({max_wait}s)")
             break
         
         for run in active["runs"]:
@@ -75,7 +75,7 @@ def monitor_projects(check_interval=30, max_wait=3600):
             project_info = get_project_data(token)
             
             if "error" in project_info:
-                print(f"❌ {project}: Error - {project_info['error']}")
+                print(f"[ERROR] {project}: Error - {project_info['error']}")
                 failed.add(token)
                 continue
             
@@ -87,7 +87,7 @@ def monitor_projects(check_interval=30, max_wait=3600):
             print(f"  Status: {status}")
             
             if status == "complete":
-                print(f"  ✅ COMPLETE")
+                print(f"  [OK] COMPLETE")
                 
                 # Try to fetch the data using LATEST run token
                 if last_run_token:
@@ -124,11 +124,11 @@ def monitor_projects(check_interval=30, max_wait=3600):
                         })
                     completed.add(token)
                 else:
-                    print(f"  ⚠️  No run token available")
+                    print(f"  [WARNING]  No run token available")
                     failed.add(token)
                     
             elif status == "error":
-                print(f"  ❌ RUN ERROR")
+                print(f"  [ERROR] RUN ERROR")
                 failed.add(token)
                 all_results["project_data"].append({
                     "project": project,
@@ -151,9 +151,9 @@ def monitor_projects(check_interval=30, max_wait=3600):
     print("\n" + "=" * 70)
     print("🎉 MONITORING COMPLETE")
     print("=" * 70)
-    print(f"✅ Completed: {len(completed)}")
-    print(f"❌ Failed: {len(failed)}")
-    print(f"⏱️  Total time: {int(time.time() - start_time)}s")
+    print(f"[OK] Completed: {len(completed)}")
+    print(f"[ERROR] Failed: {len(failed)}")
+    print(f"[TIME]  Total time: {int(time.time() - start_time)}s")
     
     all_results["monitoring_ended"] = datetime.now().isoformat()
     all_results["completed_count"] = len(completed)

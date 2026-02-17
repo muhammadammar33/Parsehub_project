@@ -41,9 +41,9 @@ def check_all_projects():
         project_data = verify_project_exists(token)
         
         if "error" in project_data:
-            print(f"  ❌ Error: {project_data['error']}")
+            print(f"  [ERROR] Error: {project_data['error']}")
         else:
-            print(f"  ✅ Project exists")
+            print(f"  [OK] Project exists")
             print(f"  Title: {project_data.get('title')}")
             print(f"  Last Run: {project_data.get('last_run', {}).get('start_time', 'Never')}")
         print()

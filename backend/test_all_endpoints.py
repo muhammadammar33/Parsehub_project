@@ -61,7 +61,7 @@ for url in endpoints:
     is_redirect = 300 <= status < 400
     
     if status == 200:
-        print(f"✅ {status}: {short_url}")
+        print(f"[OK] {status}: {short_url}")
         try:
             data = r.json()
             print(f"   Response keys: {list(data.keys())[:5]}")
@@ -72,9 +72,9 @@ for url in endpoints:
         print(f"↪️  {status}: {short_url}")
         print(f"   Redirects to: {r.headers.get('location', 'N/A')}")
     elif status == 404:
-        print(f"❌ {status}: {short_url}")
+        print(f"[ERROR] {status}: {short_url}")
     else:
-        print(f"⚠️  {status}: {short_url}")
+        print(f"[WARNING]  {status}: {short_url}")
 
 print("\n" + "=" * 80)
 print("\nIf you see any 200 or redirects above, those are promising!")

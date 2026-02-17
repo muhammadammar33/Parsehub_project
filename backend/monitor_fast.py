@@ -69,7 +69,7 @@ def monitor_projects_fast(check_interval=10, max_wait=3600):
         elapsed = time.time() - start_time
         
         if elapsed > max_wait:
-            print(f"\n⏱️  Max wait time reached ({max_wait}s)")
+            print(f"\n[TIME]  Max wait time reached ({max_wait}s)")
             break
         
         for run in active["runs"]:
@@ -83,7 +83,7 @@ def monitor_projects_fast(check_interval=10, max_wait=3600):
             project_info = get_project_data(token)
             
             if "error" in project_info:
-                print(f"[{datetime.now().strftime('%H:%M:%S')}] ❌ {project}: API Error")
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] [ERROR] {project}: API Error")
                 failed.add(token)
                 continue
             
@@ -100,7 +100,7 @@ def monitor_projects_fast(check_interval=10, max_wait=3600):
                 last_check[token] = status
             
             if status == "complete" and last_run_token:
-                print(f"  ✅ COMPLETE - Fetching data immediately...")
+                print(f"  [OK] COMPLETE - Fetching data immediately...")
                 
                 # Try to fetch data - do this ASAP while it's still available
                 max_retries = 3
@@ -149,11 +149,11 @@ def monitor_projects_fast(check_interval=10, max_wait=3600):
                         break
                     else:
                         if attempt < max_retries - 1:
-                            print(f"  ⚠️  Attempt {attempt + 1} failed, retrying in 2s...")
+                            print(f"  [WARNING]  Attempt {attempt + 1} failed, retrying in 2s...")
                             time.sleep(2)
                         else:
                             # All retries failed - data was purged
-                            print(f"  ❌ Data purged (all {max_retries} attempts failed)\n")
+                            print(f"  [ERROR] Data purged (all {max_retries} attempts failed)\n")
                             all_results["project_data"].append({
                                 "project": project,
                                 "token": token,
@@ -166,7 +166,7 @@ def monitor_projects_fast(check_interval=10, max_wait=3600):
                             completed[token] = None
             
             elif status == "error":
-                print(f"  ❌ RUN ERROR\n")
+                print(f"  [ERROR] RUN ERROR\n")
                 failed.add(token)
                 all_results["project_data"].append({
                     "project": project,
@@ -182,10 +182,10 @@ def monitor_projects_fast(check_interval=10, max_wait=3600):
     print("\n" + "=" * 70)
     print("🎉 MONITORING COMPLETE")
     print("=" * 70)
-    print(f"✅ Completed & Data Saved: {sum(1 for v in completed.values() if v is not None)}")
-    print(f"✅ Completed (Data Purged): {sum(1 for v in completed.values() if v is None)}")
-    print(f"❌ Failed: {len(failed)}")
-    print(f"⏱️  Total time: {int(time.time() - start_time)}s")
+    print(f"[OK] Completed & Data Saved: {sum(1 for v in completed.values() if v is not None)}")
+    print(f"[OK] Completed (Data Purged): {sum(1 for v in completed.values() if v is None)}")
+    print(f"[ERROR] Failed: {len(failed)}")
+    print(f"[TIME]  Total time: {int(time.time() - start_time)}s")
     
     all_results["monitoring_ended"] = datetime.now().isoformat()
     all_results["data_saved_count"] = sum(1 for v in completed.values() if v is not None)

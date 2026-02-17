@@ -59,7 +59,7 @@ if r.status_code == 200:
             try:
                 data = test_r.json()
                 if isinstance(data, dict):
-                    print(f"    ✅ Got JSON! Keys: {list(data.keys())[:5]}")
+                    print(f"    [OK] Got JSON! Keys: {list(data.keys())[:5]}")
                     if "results" in data or "data" in data:
                         print(f"    Contains data!")
                 else:

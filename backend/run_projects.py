@@ -38,7 +38,7 @@ def main():
         run_data = run_project(token)
         
         if "error" not in run_data:
-            print(f"   ✅ Run started! Run Token: {run_data.get('run_token')}\n")
+            print(f"   [OK] Run started! Run Token: {run_data.get('run_token')}\n")
             results.append({
                 "project": title,
                 "token": token,
@@ -46,7 +46,7 @@ def main():
                 "status": "started"
             })
         else:
-            print(f"   ❌ Error: {run_data['error']}\n")
+            print(f"   [ERROR] Error: {run_data['error']}\n")
     
     # Save results
     with open("active_runs.json", "w") as f:

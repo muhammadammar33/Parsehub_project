@@ -28,10 +28,10 @@ def fetch_projects():
         projects = data.get("projects", [])
         
         if not projects:
-            print("❌ No projects found in your ParseHub account.")
+            print("[ERROR] No projects found in your ParseHub account.")
             return []
         
-        print(f"✅ Successfully fetched {len(projects)} project(s)!\n")
+        print(f"[OK] Successfully fetched {len(projects)} project(s)!\n")
         
         # Display projects in terminal
         for idx, project in enumerate(projects, 1):
@@ -71,13 +71,13 @@ def fetch_projects():
         return projects
         
     except requests.exceptions.RequestException as e:
-        print(f"❌ API Error: {e}")
+        print(f"[ERROR] API Error: {e}")
         return []
     except json.JSONDecodeError:
-        print("❌ Error parsing API response")
+        print("[ERROR] Error parsing API response")
         return []
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        print(f"[ERROR] Unexpected error: {e}")
         return []
 
 if __name__ == "__main__":

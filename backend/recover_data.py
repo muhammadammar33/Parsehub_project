@@ -43,13 +43,13 @@ def recover_project_data(token, project_name):
     runs_data = get_all_runs(token)
     
     if "error" in runs_data:
-        print(f"  ❌ Could not fetch runs list: {runs_data['error']}")
+        print(f"  [ERROR] Could not fetch runs list: {runs_data['error']}")
         return None
     
     runs = runs_data.get("runs", [])
     
     if not runs:
-        print(f"  ⚠️  No runs found")
+        print(f"  [WARNING]  No runs found")
         return None
     
     print(f"  Found {len(runs)} total runs")
@@ -72,7 +72,7 @@ def recover_project_data(token, project_name):
         
         if data and "results" in data:
             records = len(data.get("results", []))
-            print(f"      ✅ SUCCESS! Retrieved {records} records")
+            print(f"      [OK] SUCCESS! Retrieved {records} records")
             
             filename = f"recovered_data_{token}_{idx}.json"
             with open(filename, "w", encoding="utf-8") as f:
@@ -92,7 +92,7 @@ def recover_project_data(token, project_name):
                 "file": filename
             })
         else:
-            print(f"      ❌ Data not available (purged or error)")
+            print(f"      [ERROR] Data not available (purged or error)")
             recovered.append({
                 "run_token": run_token,
                 "status": "purged",
@@ -103,7 +103,7 @@ def recover_project_data(token, project_name):
         print(f"\n  📊 Recovery Summary: {sum(1 for r in recovered if r['status'] == 'success')}/{len([r for r in recovered if r['status'] != 'error'])} runs with data available")
         return recovered
     else:
-        print(f"  ❌ Could not recover data from any run")
+        print(f"  [ERROR] Could not recover data from any run")
         return None
 
 def main():

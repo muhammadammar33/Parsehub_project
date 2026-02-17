@@ -12,7 +12,7 @@ def import_all_data():
     projects_file = 'd:\\Parsehub\\parsehub_projects.json'
     
     if not os.path.exists(projects_file):
-        print("❌ parsehub_projects.json not found")
+        print("[ERROR] parsehub_projects.json not found")
         return
     
     with open(projects_file, 'r') as f:
@@ -29,7 +29,7 @@ def import_all_data():
         
         # Add project to database
         db.add_project(token, title, owner, site)
-        print(f"✅ Added project: {title}")
+        print(f"[OK] Added project: {title}")
         
         # Check for corresponding data file
         data_file = f'd:\\Parsehub\\data_{token}.json'
@@ -49,11 +49,11 @@ def import_all_data():
                 if result:
                     print(f"   📁 Imported {result['records']} records from {data_file}")
                 else:
-                    print(f"   ⚠️  Failed to import data from {data_file}")
+                    print(f"   [WARNING]  Failed to import data from {data_file}")
             else:
-                print(f"   ⚠️  No run data for {data_file}")
+                print(f"   [WARNING]  No run data for {data_file}")
     
-    print("\n✅ Data import complete!")
+    print("\n[OK] Data import complete!")
     
     # Show analytics
     print("\n📈 Project Analytics:")

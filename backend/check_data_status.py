@@ -49,16 +49,16 @@ for run in active["runs"]:
         print(f"  Output Format: {output_format}")
         
         if is_empty:
-            print(f"  ⚠️  NO DATA - Run returned empty results!")
+            print(f"  [WARNING]  NO DATA - Run returned empty results!")
         else:
-            print(f"  ✅ Data available!")
+            print(f"  [OK] Data available!")
             all_empty = False
         
         print()
 
 print("=" * 80)
 if all_empty:
-    print("❌ PROBLEM IDENTIFIED:")
+    print("[ERROR] PROBLEM IDENTIFIED:")
     print("   All projects are returning empty data (is_empty=True)")
     print("\n   Possible causes:")
     print("   1. Templates are not extracting any data (template misconfiguration)")
@@ -69,5 +69,5 @@ if all_empty:
     print("   2. Check if CSS selectors/XPath still match the website structure")
     print("   3. Re-run projects manually from ParseHub dashboard and verify")
 else:
-    print("✅ Some projects have data available")
+    print("[OK] Some projects have data available")
     print("   Use a different endpoint to fetch it")

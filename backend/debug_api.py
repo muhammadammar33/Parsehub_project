@@ -50,7 +50,7 @@ if r.status_code != 200:
     print(f"   Error: {r.text[:300]}")
 else:
     data = r.json()
-    print(f"   ✅ Got data! Records: {len(data.get('results', []))}")
+    print(f"   [OK] Got data! Records: {len(data.get('results', []))}")
 
 print()
 
@@ -67,7 +67,7 @@ if latest_run_token:
         print(f"   Error: {r.text[:300]}")
     else:
         data = r.json()
-        print(f"   ✅ Got data! Records: {len(data.get('results', []))}")
+        print(f"   [OK] Got data! Records: {len(data.get('results', []))}")
 else:
     print("   No latest run token available")
 
