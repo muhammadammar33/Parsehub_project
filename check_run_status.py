@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 """Check run status"""
 import requests
+import os
+from dotenv import load_dotenv
 
-api_key = 't_hmXetfMCq3'
+# Load environment variables
+load_dotenv()
+api_key = os.getenv('PARSEHUB_API_KEY', '')
 run_token = 'tEYPeTu5hJyo'
 url = f'https://www.parsehub.com/api/v2/runs/{run_token}'
 

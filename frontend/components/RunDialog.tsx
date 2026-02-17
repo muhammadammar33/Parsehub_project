@@ -1,18 +1,18 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import Modal from './Modal'
-import ProgressModal from './ProgressModal'
-import { Play, AlertCircle, Zap } from 'lucide-react'
+import React, { useState } from "react";
+import Modal from "./Modal";
+import ProgressModal from "./ProgressModal";
+import { Play, AlertCircle, Zap } from "lucide-react";
 
 interface RunDialogProps {
-  isOpen: boolean
-  onClose: () => void
-  projectToken: string
-  projectTitle: string
-  projectURL?: string
-  onRunStart: (runToken: string, pages: number) => void
-  isLoading?: boolean
+  isOpen: boolean;
+  onClose: () => void;
+  projectToken: string;
+  projectTitle: string;
+  projectURL?: string;
+  onRunStart: (runToken: string, pages: number) => void;
+  isLoading?: boolean;
 }
 
 export default function RunDialog({
@@ -20,297 +20,338 @@ export default function RunDialog({
   onClose,
   projectToken,
   projectTitle,
-  projectURL = '',
+  projectURL = "",
   onRunStart,
   isLoading = false,
 }: RunDialogProps) {
-  const [pages, setPages] = useState<number>(1)
-  const [useIncremental, setUseIncremental] = useState(false)
-  const [totalPages, setTotalPages] = useState<number>(10)
-  const [error, setError] = useState<string>('')
-  const [isRunning, setIsRunning] = useState(false)
-  const [sessionId, setSessionId] = useState<number | null>(null)
-  const [showProgress, setShowProgress] = useState(false)
+  const [pages, setPages] = useState<string>("");
+  const [useIncremental, setUseIncremental] = useState(false);
+  const [totalPages, setTotalPages] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isRunning, setIsRunning] = useState(false);
+  const [sessionId, setSessionId] = useState<number | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
 
   const handleRun = async () => {
-    if (pages < 1) {
-      setError('Pages must be at least 1')
-      return
+    const pagesNum = parseInt(pages);
+    const totalPagesNum = parseInt(totalPages);
+
+    if (!pages || isNaN(pagesNum) || pagesNum < 1) {
+      setError("Please enter a valid number of pages");
+      return;
     }
 
-    if (pages > 1000) {
-      setError('Pages cannot exceed 1000')
-      return
+    if (
+      useIncremental &&
+      (!totalPages || isNaN(totalPagesNum) || totalPagesNum < pagesNum)
+    ) {
+      setError(
+        "Total pages must be greater than or equal to pages per iteration",
+      );
+      return;
     }
 
-    if (useIncremental && totalPages < pages) {
-      setError('Total pages must be greater than or equal to pages per iteration')
-      return
-    }
-
-    setError('')
-    setIsRunning(true)
+    setError("");
+    setIsRunning(true);
 
     try {
       if (useIncremental) {
         // Fetch project details from ParseHub to get the URL if not provided
-        let urlToUse = projectURL
+        let urlToUse = projectURL;
         if (!urlToUse) {
           try {
-            const projectDetailsRes = await fetch(`/api/projects/${projectToken}`)
+            const projectDetailsRes = await fetch(
+              `/api/projects/${projectToken}`,
+            );
             if (projectDetailsRes.ok) {
-              const projectData = await projectDetailsRes.json()
-              urlToUse = projectData.project?.url || projectData.project?.main_site || ''
+              const projectData = await projectDetailsRes.json();
+              urlToUse =
+                projectData.project?.url ||
+                projectData.project?.main_site ||
+                "";
             }
           } catch (err) {
-            console.error('Failed to fetch project URL:', err)
+            console.error("Failed to fetch project URL:", err);
             // Continue with empty URL, let backend handle the error
           }
         }
 
         // Start incremental scraping
-        const response = await fetch('/api/projects/incremental', {
-          method: 'POST',
+        const response = await fetch("/api/projects/incremental", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             project_token: projectToken,
             project_name: projectTitle,
             original_url: urlToUse,
-            total_pages: totalPages,
-            pages_per_iteration: pages,
+            total_pages: totalPagesNum,
+            pages_per_iteration: pagesNum,
           }),
-        })
+        });
 
         if (!response.ok) {
-          throw new Error('Failed to start incremental scraping')
+          throw new Error("Failed to start incremental scraping");
         }
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (data.success) {
-          setPages(1)
-          setTotalPages(10)
-          setUseIncremental(false)
-          setSessionId(data.session_id)
-          setShowProgress(true)
-          onClose()
+          setPages("");
+          setTotalPages("");
+          setUseIncremental(false);
+          setSessionId(data.session_id);
+          setShowProgress(true);
+          onClose();
         } else {
-          setError(data.error || 'Failed to start incremental scraping')
+          setError(data.error || "Failed to start incremental scraping");
         }
       } else {
         // Regular run
-        const response = await fetch('/api/projects/run', {
-          method: 'POST',
+        const response = await fetch("/api/projects/run", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             token: projectToken,
-            pages: pages,
+            pages: pagesNum,
           }),
-        })
+        });
 
         if (!response.ok) {
-          throw new Error('Failed to start run')
+          throw new Error("Failed to start run");
         }
 
-        const data = await response.json()
+        const data = await response.json();
 
         if (data.success && data.run_token) {
-          onRunStart(data.run_token, pages)
-          setPages(1)
-          onClose()
+          onRunStart(data.run_token, pagesNum);
+          setPages("");
+          onClose();
         } else {
-          setError(data.error || 'Failed to start run')
+          setError(data.error || "Failed to start run");
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsRunning(false)
+      setIsRunning(false);
     }
-  }
+  };
 
   const handlePagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0
-    setPages(Math.max(1, Math.min(1000, value)))
-    setError('')
-  }
+    setPages(e.target.value);
+    setError("");
+  };
 
   const handleTotalPagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0
-    setTotalPages(Math.max(1, Math.min(10000, value)))
-    setError('')
-  }
+    setTotalPages(e.target.value);
+    setError("");
+  };
 
   return (
     <>
       <Modal isOpen={isOpen} onClose={onClose} title={`Run: ${projectTitle}`}>
-        <div className="space-y-4">
-        {/* Incremental Scraping Toggle */}
-        <div className="border-b border-gray-200 pb-4">
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="incremental-toggle"
-              checked={useIncremental}
-              onChange={(e) => {
-                setUseIncremental(e.target.checked)
-                setError('')
-              }}
-              disabled={isRunning || isLoading}
-              className="w-4 h-4 text-blue-600 rounded focus:ring-2"
-            />
-            <label htmlFor="incremental-toggle" className="flex items-center gap-2 cursor-pointer">
-              <Zap className="w-4 h-4 text-orange-600" />
-              <span className="font-medium text-gray-700">Enable Incremental Scraping</span>
-            </label>
-          </div>
-          <p className="text-xs text-gray-500 mt-2 ml-7">
-            Automatically creates and runs multiple jobs to scrape all pages, combining results
-          </p>
-        </div>
-
-        {/* Regular Pages Input */}
-        {!useIncremental && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Number of Pages to Scrape
-            </label>
-            <div className="flex items-center gap-2">
+        <div className="space-y-6">
+          {/* Incremental Scraping Toggle */}
+          <div className="border-b border-slate-700/50 pb-5">
+            <div className="flex items-start gap-3">
               <input
-                type="number"
-                min="1"
-                max="1000"
-                value={pages}
-                onChange={handlePagesChange}
+                type="checkbox"
+                id="incremental-toggle"
+                checked={useIncremental}
+                onChange={(e) => {
+                  setUseIncremental(e.target.checked);
+                  setError("");
+                }}
                 disabled={isRunning || isLoading}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                placeholder="Enter number of pages"
+                className="w-5 h-5 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-2 focus:ring-blue-500 mt-0.5"
               />
-              <span className="text-sm text-gray-500">pages</span>
+              <div className="flex-1">
+                <label
+                  htmlFor="incremental-toggle"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Zap className="w-5 h-5 text-amber-500" />
+                  <span className="font-semibold text-slate-200 text-base">
+                    Enable Incremental Scraping
+                  </span>
+                </label>
+                <p className="text-sm text-slate-400 mt-1.5">
+                  Automatically creates and runs multiple jobs to scrape all
+                  pages, combining results
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              Specify how many pages to scrape in a single run.
-            </p>
           </div>
-        )}
 
-        {/* Incremental Scraping Inputs */}
-        {useIncremental && (
-          <div className="space-y-4 bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Pages per Iteration
+          {/* Regular Pages Input */}
+          {!useIncremental && (
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-slate-300">
+                Number of Pages to Scrape
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <input
                   type="number"
-                  min="1"
-                  max="500"
                   value={pages}
                   onChange={handlePagesChange}
                   disabled={isRunning || isLoading}
-                  className="flex-1 px-3 py-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100 text-gray-900 font-semibold"
-                  placeholder="e.g., 5"
+                  className="flex-1 px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-slate-800 disabled:text-slate-500 transition-all"
+                  placeholder="Enter number of pages"
                 />
-                <span className="text-sm text-gray-600">pages/run</span>
+                <span className="text-sm text-slate-400 font-medium px-3 py-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                  pages
+                </span>
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                How many pages to scrape per ParseHub project iteration
+              <p className="text-xs text-slate-500">
+                Specify how many pages to scrape in a single run.
               </p>
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total Pages Target
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="10000"
-                  value={totalPages}
-                  onChange={handleTotalPagesChange}
-                  disabled={isRunning || isLoading}
-                  className="flex-1 px-3 py-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100 text-gray-900 font-semibold"
-                  placeholder="e.g., 50"
-                />
-                <span className="text-sm text-gray-600">pages total</span>
+          {/* Incremental Scraping Inputs */}
+          {useIncremental && (
+            <div className="space-y-5 bg-gradient-to-br from-amber-900/20 to-orange-900/20 border border-amber-700/30 rounded-xl p-5">
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-slate-300">
+                  Pages per Iteration
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={pages}
+                    onChange={handlePagesChange}
+                    disabled={isRunning || isLoading}
+                    className="flex-1 px-4 py-3 bg-slate-900/50 border border-amber-600/50 rounded-xl text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:bg-slate-800 disabled:text-slate-500 transition-all"
+                    placeholder="e.g., 5"
+                  />
+                  <span className="text-sm text-slate-300 font-medium px-3 py-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    pages/run
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  How many pages to scrape per ParseHub project iteration
+                </p>
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Total pages you want to scrape (system will create {Math.ceil(totalPages / pages)} iterations)
+
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-slate-300">
+                  Total Pages Target
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    value={totalPages}
+                    onChange={handleTotalPagesChange}
+                    disabled={isRunning || isLoading}
+                    className="flex-1 px-4 py-3 bg-slate-900/50 border border-amber-600/50 rounded-xl text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:bg-slate-800 disabled:text-slate-500 transition-all"
+                    placeholder="e.g., 50"
+                  />
+                  <span className="text-sm text-slate-300 font-medium px-3 py-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    pages total
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Total pages you want to scrape (system will create{" "}
+                  {pages && totalPages
+                    ? Math.ceil(parseInt(totalPages) / parseInt(pages))
+                    : "?"}{" "}
+                  iterations)
+                </p>
+              </div>
+
+              <div className="bg-slate-900/50 border border-amber-600/30 rounded-xl p-4">
+                <p className="text-sm font-semibold text-amber-300 mb-2">
+                  📊 Scraping Plan
+                </p>
+                <p className="text-sm text-slate-300">
+                  Will create{" "}
+                  <strong className="text-amber-400">
+                    {pages && totalPages
+                      ? Math.ceil(parseInt(totalPages) / parseInt(pages))
+                      : "?"}
+                  </strong>{" "}
+                  automatic runs of{" "}
+                  <strong className="text-amber-400">
+                    {pages || "?"} pages each
+                  </strong>{" "}
+                  to reach{" "}
+                  <strong className="text-amber-400">
+                    {totalPages || "?"} pages
+                  </strong>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="flex items-start gap-3 p-4 bg-red-900/20 border border-red-700/50 rounded-xl">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <span className="text-sm text-red-300 font-medium">{error}</span>
+            </div>
+          )}
+
+          {!useIncremental && (
+            <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-4">
+              <p className="text-sm text-blue-300">
+                <strong className="text-blue-400">
+                  🔄 Auto-Recovery Enabled:
+                </strong>{" "}
+                If the scraping stops before reaching all {pages || "?"} pages,
+                you can resume without losing progress.
               </p>
             </div>
+          )}
 
-            <div className="bg-white border border-orange-200 rounded p-2">
-              <p className="text-sm font-medium text-gray-700">Scraping Plan:</p>
-              <p className="text-sm text-gray-600 mt-1">
-                Will create <strong>{Math.ceil(totalPages / pages)}</strong> automatic runs of{' '}
-                <strong>{pages} pages each</strong> to reach <strong>{totalPages} pages</strong>
+          {useIncremental && (
+            <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl p-4">
+              <p className="text-sm text-amber-300">
+                <strong className="text-amber-400">
+                  ⚡ Automated Pagination:
+                </strong>{" "}
+                URL pattern will be detected automatically. New projects will be
+                created for each iteration and combined results will be saved.
               </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {error && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded">
-            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-            <span className="text-sm text-red-700">{error}</span>
+          <div className="flex gap-3 justify-end pt-4 border-t border-slate-700/50">
+            <button
+              onClick={onClose}
+              disabled={isRunning || isLoading}
+              className="px-6 py-3 text-slate-300 font-semibold border border-slate-600 rounded-xl hover:bg-slate-700/50 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleRun}
+              disabled={isRunning || isLoading}
+              className={`px-6 py-3 text-white font-semibold rounded-xl flex items-center gap-2 disabled:cursor-not-allowed transition-all duration-200 shadow-lg ${
+                useIncremental
+                  ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 disabled:from-slate-700 disabled:to-slate-700 shadow-amber-500/25"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-slate-700 disabled:to-slate-700 shadow-blue-500/25"
+              }`}
+            >
+              <Play className="w-4 h-4" />
+              {isRunning || isLoading
+                ? "Starting..."
+                : useIncremental
+                  ? "Start Incremental Scrape"
+                  : "Start Run"}
+            </button>
           </div>
-        )}
-
-        {!useIncremental && (
-          <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            <p className="text-sm text-blue-800">
-              <strong>Auto-Recovery Enabled:</strong> If the scraping stops before reaching all{' '}
-              {pages} pages, you can resume without losing progress.
-            </p>
-          </div>
-        )}
-
-        {useIncremental && (
-          <div className="bg-orange-50 border border-orange-200 rounded p-3">
-            <p className="text-sm text-orange-800">
-              <strong>Automated Pagination:</strong> URL pattern will be detected automatically. New projects
-              will be created for each iteration and combined results will be saved.
-            </p>
-          </div>
-        )}
-
-        <div className="flex gap-2 justify-end pt-2">
-          <button
-            onClick={onClose}
-            disabled={isRunning || isLoading}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleRun}
-            disabled={isRunning || isLoading}
-            className={`px-4 py-2 text-white rounded-md flex items-center gap-2 disabled:cursor-not-allowed ${
-              useIncremental
-                ? 'bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400'
-                : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400'
-            }`}
-          >
-            <Play className="w-4 h-4" />
-            {isRunning || isLoading ? 'Starting...' : useIncremental ? 'Start Incremental Scrape' : 'Start Run'}
-          </button>
         </div>
-      </div>
-    </Modal>
+      </Modal>
 
-    <ProgressModal
-      isOpen={showProgress}
-      onClose={() => setShowProgress(false)}
-      sessionId={sessionId || 0}
-      projectName={projectTitle}
-    />
-  </>
-  )
+      <ProgressModal
+        isOpen={showProgress}
+        onClose={() => setShowProgress(false)}
+        sessionId={sessionId || 0}
+        projectName={projectTitle}
+      />
+    </>
+  );
 }
-

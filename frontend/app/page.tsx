@@ -1,198 +1,221 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { Activity, TrendingUp, Zap, Download, AlertCircle, BarChart3 } from 'lucide-react'
-import ProjectsList from '@/components/ProjectsList'
-import StatsCard from '@/components/StatsCard'
-import Header from '@/components/Header'
-import AllProjectsAnalyticsModal from '@/components/AllProjectsAnalyticsModal'
-import RunDialog from '@/components/RunDialog'
-import { useRealTimeMonitoring } from '@/lib/useRealTimeMonitoring'
+import { useEffect, useState } from "react";
+import {
+  Activity,
+  TrendingUp,
+  Zap,
+  Download,
+  AlertCircle,
+  BarChart3,
+  Play,
+} from "lucide-react";
+import ProjectsList from "@/components/ProjectsList";
+import StatsCard from "@/components/StatsCard";
+import Header from "@/components/Header";
+import AllProjectsAnalyticsModal from "@/components/AllProjectsAnalyticsModal";
+import RunDialog from "@/components/RunDialog";
+import { useRealTimeMonitoring } from "@/lib/useRealTimeMonitoring";
 
 interface Project {
-  token: string
-  title: string
-  owner_email: string
-  projecturl?: string
-  main_site?: string
+  token: string;
+  title: string;
+  owner_email: string;
+  projecturl?: string;
+  main_site?: string;
   last_run: {
-    status: string
-    pages: number
-    start_time: string
-    run_token: string
-  } | null
+    status: string;
+    pages: number;
+    start_time: string;
+    run_token: string;
+  } | null;
 }
 
 interface Stats {
-  total: number
-  running: number
-  completed: number
-  queued: number
+  total: number;
+  running: number;
+  completed: number;
+  queued: number;
 }
 
 export default function Home() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState<Stats>({
     total: 0,
     running: 0,
     completed: 0,
     queued: 0,
-  })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
-  const [analyticsOpen, setAnalyticsOpen] = useState(false)
-  const [runDialogOpen, setRunDialogOpen] = useState(false)
-  const [projectToRun, setProjectToRun] = useState<Project | null>(null)
-  
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const [runDialogOpen, setRunDialogOpen] = useState(false);
+  const [projectToRun, setProjectToRun] = useState<Project | null>(null);
+
   // Real-time monitoring hook
-  const monitoring = useRealTimeMonitoring()
+  const monitoring = useRealTimeMonitoring();
 
   useEffect(() => {
-    fetchProjects()
-    const interval = setInterval(fetchProjects, 30000) // Refresh every 30s
-    return () => clearInterval(interval)
-  }, [])
+    fetchProjects();
+    const interval = setInterval(fetchProjects, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchProjects = async () => {
     try {
-      setError(null)
-      const response = await fetch('/api/projects')
-      if (!response.ok) throw new Error('Failed to fetch projects')
-      
-      const data = await response.json()
-      setProjects(data.projects || [])
-      setLastUpdate(new Date())
+      setError(null);
+      const response = await fetch("/api/projects");
+      if (!response.ok) throw new Error("Failed to fetch projects");
+
+      const data = await response.json();
+      setProjects(data.projects || []);
+      setLastUpdate(new Date());
 
       // Calculate stats
-      const running = data.projects?.filter(
-        (p: Project) => p.last_run?.status === 'running'
-      ).length || 0
-      const completed = data.projects?.filter(
-        (p: Project) => p.last_run?.status === 'complete'
-      ).length || 0
-      const queued = data.projects?.filter(
-        (p: Project) => p.last_run?.status === 'queued'
-      ).length || 0
+      const running =
+        data.projects?.filter((p: Project) => p.last_run?.status === "running")
+          .length || 0;
+      const completed =
+        data.projects?.filter((p: Project) => p.last_run?.status === "complete")
+          .length || 0;
+      const queued =
+        data.projects?.filter((p: Project) => p.last_run?.status === "queued")
+          .length || 0;
 
       setStats({
         total: data.projects?.length || 0,
         running,
         completed,
         queued,
-      })
+      });
 
-      setLoading(false)
+      setLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch projects')
-      setLoading(false)
+      setError(err instanceof Error ? err.message : "Failed to fetch projects");
+      setLoading(false);
     }
-  }
+  };
 
   const handleRunAll = async () => {
     try {
-      setError(null)
-      const response = await fetch('/api/projects/run-all', { method: 'POST' })
-      if (!response.ok) throw new Error('Failed to run projects')
-      
-      setTimeout(fetchProjects, 1000)
+      setError(null);
+      const response = await fetch("/api/projects/run-all", { method: "POST" });
+      if (!response.ok) throw new Error("Failed to run projects");
+
+      setTimeout(fetchProjects, 1000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to run projects')
+      setError(err instanceof Error ? err.message : "Failed to run projects");
     }
-  }
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <Header />
 
       {/* Error Alert */}
       {error && (
-        <div className="container mx-auto px-4 py-4 mt-4">
-          <div className="bg-red-900/20 border border-red-700 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+        <div className="container mx-auto px-6 py-4 mt-6">
+          <div className="bg-red-900/30 backdrop-blur-sm border border-red-700/50 rounded-xl p-4 flex items-start gap-3 shadow-lg shadow-red-900/20">
+            <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-red-400">Error</p>
-              <p className="text-red-300 text-sm">{error}</p>
+              <p className="font-semibold text-red-300">Error</p>
+              <p className="text-red-400 text-sm mt-0.5">{error}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <section className="container mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
           <StatsCard
             title="Total Projects"
             value={stats.total}
-            icon={<TrendingUp className="w-5 h-5" />}
+            icon={<TrendingUp className="w-6 h-6" />}
             color="bg-blue-500"
           />
           <StatsCard
             title="Running"
             value={stats.running}
-            icon={<Activity className="w-5 h-5" />}
+            icon={<Activity className="w-6 h-6" />}
             color="bg-green-500"
           />
           <StatsCard
             title="Queued"
             value={stats.queued}
-            icon={<Zap className="w-5 h-5" />}
+            icon={<Zap className="w-6 h-6" />}
             color="bg-yellow-500"
           />
           <StatsCard
             title="Completed"
             value={stats.completed}
-            icon={<Download className="w-5 h-5" />}
+            icon={<Download className="w-6 h-6" />}
             color="bg-purple-500"
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex gap-4 flex-wrap">
+        <div className="mb-8 flex gap-4 flex-wrap items-center">
           <button
             onClick={handleRunAll}
             disabled={loading}
-            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-slate-600 disabled:to-slate-700 rounded-lg font-semibold transition-all shadow-lg"
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-slate-700 disabled:to-slate-700 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-blue-500/25 disabled:shadow-none transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed"
           >
-            🚀 Run All Projects
+            <Play className="w-5 h-5" />
+            Run All Projects
           </button>
           <button
             onClick={() => setAnalyticsOpen(true)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 rounded-lg font-semibold transition-all shadow-lg flex items-center gap-2"
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-purple-500/25 transform hover:scale-105"
           >
             <BarChart3 className="w-5 h-5" />
-            📊 Analyze
+            Analytics
           </button>
           <button
             onClick={fetchProjects}
             disabled={loading}
-            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 rounded-lg font-semibold transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3.5 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 border border-slate-700 hover:border-slate-600 rounded-xl font-semibold transition-all duration-200 disabled:cursor-not-allowed"
           >
-            🔄 Refresh
+            <Activity className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
           </button>
           {lastUpdate && (
-            <div className="text-slate-400 text-sm flex items-center">
-              Last updated: {lastUpdate.toLocaleTimeString()}
+            <div className="ml-auto flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-xl">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              <span className="text-slate-400 text-sm font-medium">
+                Updated {lastUpdate.toLocaleTimeString()}
+              </span>
             </div>
           )}
         </div>
 
         {/* Projects List */}
         {loading ? (
-          <div className="text-center py-12">
-            <div className="inline-block">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
+          <div className="text-center py-20">
+            <div className="inline-flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-700 border-t-blue-500"></div>
+                <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-pulse"></div>
+              </div>
+              <div>
+                <p className="text-slate-300 text-lg font-semibold">
+                  Loading projects...
+                </p>
+                <p className="text-slate-500 text-sm mt-1">
+                  Please wait while we fetch your data
+                </p>
+              </div>
             </div>
-            <p className="text-slate-400 mt-4">Loading projects...</p>
           </div>
         ) : (
-          <ProjectsList 
-            projects={projects} 
+          <ProjectsList
+            projects={projects}
             onRunProject={async (token: string) => {
-              const project = projects.find(p => p.token === token)
+              const project = projects.find((p) => p.token === token);
               if (project) {
-                setProjectToRun(project)
-                setRunDialogOpen(true)
+                setProjectToRun(project);
+                setRunDialogOpen(true);
               }
             }}
           />
@@ -206,18 +229,22 @@ export default function Home() {
           onClose={() => setRunDialogOpen(false)}
           projectToken={projectToRun.token}
           projectTitle={projectToRun.title}
-          projectURL={projectToRun.projecturl || projectToRun.main_site || ''}
+          projectURL={projectToRun.projecturl || projectToRun.main_site || ""}
           onRunStart={async (runToken: string, pages: number) => {
             // Start real-time monitoring
             try {
-              await monitoring.startMonitoring(projectToRun.token, runToken, pages)
+              await monitoring.startMonitoring(
+                projectToRun.token,
+                runToken,
+                pages,
+              );
             } catch (err) {
-              console.error('Failed to start monitoring:', err)
+              console.error("Failed to start monitoring:", err);
             }
-            
-            await fetchProjects()
+
+            await fetchProjects();
             // Show analytics modal for all projects
-            setAnalyticsOpen(true)
+            setAnalyticsOpen(true);
           }}
         />
       )}
@@ -226,10 +253,10 @@ export default function Home() {
       <AllProjectsAnalyticsModal
         isOpen={analyticsOpen}
         onClose={() => {
-          setAnalyticsOpen(false)
+          setAnalyticsOpen(false);
         }}
         projects={projects}
       />
     </main>
-  )
+  );
 }

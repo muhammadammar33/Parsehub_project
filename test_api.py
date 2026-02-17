@@ -2,8 +2,11 @@
 """Test ParseHub API endpoints"""
 import requests
 import os
+from dotenv import load_dotenv
 
-api_key = 't_hmXetfMCq3'
+# Load environment variables
+load_dotenv()
+api_key = os.getenv('PARSEHUB_API_KEY', '')
 project_token = 'tusu6YkwKJQ8'
 base_url = 'https://www.parsehub.com/api/v2'
 

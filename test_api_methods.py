@@ -3,8 +3,11 @@
 import requests
 import json
 import os
+from dotenv import load_dotenv
 
-api_key = 't_hmXetfMCq3'
+# Load environment variables
+load_dotenv()
+api_key = os.getenv('PARSEHUB_API_KEY', '')
 base_url = 'https://www.parsehub.com/api/v2'
 
 print("=" * 70)
@@ -20,7 +23,8 @@ data = json.dumps({
     'start_url': 'https://www.example.com/test?page=2',
 })
 try:
-    r = requests.post(url, data=data, headers=headers, params={'api_key': api_key}, timeout=5)
+    r = requests.post(url, data=data, headers=headers,
+                      params={'api_key': api_key}, timeout=5)
     print(f"   Status: {r.status_code}")
     if r.status_code not in [502, 503]:
         print(f"   Response: {r.text[:300]}")
@@ -35,7 +39,8 @@ project_token = 'tusu6YkwKJQ8'
 url = f'{base_url}/projects/{project_token}/run'
 params = {
     'api_key': api_key,
-    'start_url': 'https://www.example.com/test?page=2'  # Try passing URL to run endpoint
+    # Try passing URL to run endpoint
+    'start_url': 'https://www.example.com/test?page=2'
 }
 try:
     r = requests.post(url, params=params, timeout=5)
@@ -51,7 +56,8 @@ except Exception as e:
 print("\n3. Testing ParseHub API v1...")
 url = f'https://www.parsehub.com/api/v1/projects'
 try:
-    r = requests.post(url, data={'title': 'Test'}, params={'api_key': api_key}, timeout=5)
+    r = requests.post(url, data={'title': 'Test'}, params={
+                      'api_key': api_key}, timeout=5)
     print(f"   Status: {r.status_code}")
     print(f"   Response[:100]: {r.text[:100]}")
 except Exception as e:
